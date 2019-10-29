@@ -2,6 +2,7 @@ package com.example.iitdutility;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.graphics.Bitmap;
 import android.net.http.SslError;
 import android.os.Bundle;
 import android.util.Log;
@@ -41,6 +42,8 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+
+
     }
 
 
@@ -72,7 +75,8 @@ public class MainActivity extends AppCompatActivity {
                        // if(captcha[0].indexOf("Please")==-1)
                          //   return;
                         try {
-                            captcha[0] = value.substring(4501, 4541);
+                            int ind=value.lastIndexOf("Please");
+                            captcha[0] = value.substring(ind,ind+40);
                         }catch (Exception e){return;}
                         Log.d(TAG, "onReceiveValue: value is "+value.substring(4501));
 
