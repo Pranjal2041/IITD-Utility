@@ -20,6 +20,12 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import org.w3c.dom.Document;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+
 public class MainActivity extends AppCompatActivity {
 
     String pass;
@@ -31,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Button moodle=findViewById(R.id.button);
+        Button ngu=findViewById(R.id.button2);
         final EditText password=findViewById(R.id.editText);
         webView=findViewById(R.id.webView);
 
@@ -40,6 +47,14 @@ public class MainActivity extends AppCompatActivity {
                 pass=String.valueOf(password.getText());
                 counter=0;
                 loadMoodle();
+            }
+        });
+
+        ngu.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pass=String.valueOf(password.getText());
+                loadNgu();
             }
         });
 
@@ -252,6 +267,75 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "And the captcha is "+res, Toast.LENGTH_SHORT).show();
         }
 
+
+        void loadNgu() {
+            webView.getSettings().setJavaScriptEnabled(true);
+
+            String url = "https://ngu.iitd.ac.in/index";
+            webView.loadUrl(url);
+            // new Document().getDocumentElement()
+
+           // final String js = "javascript:document.getElementById('username').value='cs5190443';" +
+             //       "javascript:document.getElementById('password').value='" + pass + "';" +
+               //     "(function(){return window.document.body.outerHTML})()";
+
+            final String js="javascript:document.getElementsByClassName('btn btn-success btn-block').item(0).click();";
+
+            webView.setWebViewClient(new WebViewClient() {
+                public void onPageFinished(final WebView view, String url) {
+
+                    view.evaluateJavascript(js, new ValueCallback<String>() {
+                        @Override
+                        public void onReceiveValue(String value) {
+
+
+                            view.setWebViewClient(new WebViewClient(){
+                                public void onPageFinished(final WebView view,String url){
+                                    view.evaluateJavascript("javascript:document.getElementsByName('username').item(0).value='cs5190443';"
+                                            + "javascript:document.getElementsByName('password').item(0).value='"+pass+"';"+
+                                            "javascript:(document.getElementsByClassName('captcha-image').item(0)).src;", new ValueCallback<String>() {
+                                        @Override
+                                        public void onReceiveValue(String value) {
+                                            Log.d(TAG, "onReceiveValue: "+value);
+
+                                            URL imageurl = null;
+                                            try {
+                                                imageurl = new URL(value);
+                                            } catch (MalformedURLException e) {
+                                                e.printStackTrace();
+                                            }
+                                            try {
+                                                Bitmap bitmap;// = BitmapFactory.decodeStream(imageurl.openConnection().getInputStream());
+                                            } catch (Exception e) {
+                                                e.printStackTrace();
+                                            }
+
+
+                                        }
+
+
+                            });
+                                }
+
+                            });
+
+
+                        }
+
+                    });
+
+                }
+
+                @Override
+                public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
+                    Log.e(TAG, "onReceivedSslError: " + error.toString());
+                    //if(error.mUrl="https://moodle.iitd.ac.in/login/index.php")
+                    handler.proceed();
+                }
+
+
+            });
+        }
 
 
     void loadMoodle()

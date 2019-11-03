@@ -28,7 +28,7 @@
         android:id="@+id/webView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="50dp"/>
+        android:layout_marginTop="100dp"/>
 
     <ImageView
         android:id="@+id/imageView"
@@ -36,4 +36,15 @@
         android:layout_height="wrap_content"
         android:visibility="visible"
         app:srcCompat="@mipmap/ic_launcher_round" />
+
+    <Button
+        android:id="@+id/button2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/webView"
+        android:layout_alignTop="@+id/imageView"
+        android:layout_marginStart="0dp"
+        android:layout_marginTop="48dp"
+        android:layout_marginBottom="0dp"
+        android:text="ngu" />
 </RelativeLayout>
