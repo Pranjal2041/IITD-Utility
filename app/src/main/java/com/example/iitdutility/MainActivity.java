@@ -3,16 +3,25 @@ package com.example.iitdutility;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.res.ComplexColorCompat;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.Picture;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
+import android.webkit.RenderProcessGoneDetail;
 import android.webkit.SslErrorHandler;
 import android.webkit.ValueCallback;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
@@ -23,6 +32,7 @@ import android.widget.Toast;
 import org.w3c.dom.Document;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -30,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
 
     String pass;
     WebView webView;
+    ImageView imageView;
     int counter=0;
     private static final String TAG = "MainActivity";
     @Override
@@ -40,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
         Button ngu=findViewById(R.id.button2);
         final EditText password=findViewById(R.id.editText);
         webView=findViewById(R.id.webView);
+        imageView=findViewById(R.id.imageView);
 
         moodle.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -59,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-        processImage();
+
 
 
 
@@ -193,9 +205,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-        void processImage()
+        String processImage(Bitmap bitmap)
         {
-            Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.unnamed);
+            //Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.unnamed);
             int width=bitmap.getWidth();
             int height=bitmap.getHeight();
             Bitmap process=Bitmap.createBitmap(width+6,height+6,Bitmap.Config.ARGB_8888);
@@ -213,7 +225,7 @@ public class MainActivity extends AppCompatActivity {
                         int p = bitmap.getPixel(j, i);
 
                     int r=Color.red(p);
-                    if(r>150)
+                    if(r>120)
                         process.setPixel(j+3,i+3,Color.BLACK);
                     else
                         process.setPixel(j+3,i+3,Color.WHITE);
@@ -223,8 +235,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             }
-            ImageView imageView=findViewById(R.id.imageView);
-            imageView.setImageBitmap(process);
+            //imageView.setImageBitmap(process);
 
 
             MyTessOCR mTessOCR2;
@@ -250,7 +261,9 @@ public class MainActivity extends AppCompatActivity {
 
 
             switchColor(process);
-            imageView.setImageBitmap(process);
+           // imageView.setImageBitmap(process);
+           // smoothenImage(process);
+           // smoothenImage(process);
 
 
             MyTessOCR mTessOCR;
@@ -260,11 +273,58 @@ public class MainActivity extends AppCompatActivity {
             String res;
             temp=temp.replace(" ","");
             temp2=temp2.replace(" ","");
-            if((temp2.length()==4)||(temp2.length()==5))
-                res=temp2;
-            else
+            temp=mapCaptchaIssues(temp);
+            temp2=mapCaptchaIssues(temp2);
+
+            if((temp.length()==4)||(temp.length()==5))
                 res=temp;
+            else
+                res=temp2;
             Toast.makeText(this, "And the captcha is "+res, Toast.LENGTH_SHORT).show();
+            return res;
+        }
+
+        void smoothenImage(Bitmap bmp)
+        {
+            Bitmap original=Bitmap.createBitmap(bmp);
+            for(int i=1;i<original.getWidth()-1;i++)
+            {
+                for(int j=1;j<original.getHeight()-1;j++)
+                {
+                    int count=0;
+                    for(int p=-1;p<=1;p++)
+                    {
+                        for(int q=-1;q<=1;q++)
+                        {
+                            if(Color.red(original.getPixel(i+p,j+q))==0)
+                                count++;
+                        }
+                    }
+                    if(Color.red(original.getPixel(i,j))==0)
+                    {
+                        if(count<3)
+                            bmp.setPixel(i,j,Color.WHITE);
+                        else
+                            bmp.setPixel(i,j,Color.BLACK);
+                    }
+                    else
+                    {
+                        if(count>3)
+                            bmp.setPixel(i,j,Color.BLACK);
+                        else
+                            bmp.setPixel(i,j,Color.WHITE);
+                    }
+                }
+            }
+
+        }
+
+        String mapCaptchaIssues(String a)
+        {
+            a=a.replace("cl","d");
+            return a;
+
+
         }
 
 
@@ -280,7 +340,13 @@ public class MainActivity extends AppCompatActivity {
                //     "(function(){return window.document.body.outerHTML})()";
 
             final String js="javascript:document.getElementsByClassName('btn btn-success btn-block').item(0).click();";
-
+    
+   /*         webView.setPictureListener(new WebView.PictureListener() {
+                @Override
+                public void onNewPicture(WebView webView, Picture picture) {
+                    Log.d(TAG, "onNewPicture: picture loaded");
+                }
+            });*/
             webView.setWebViewClient(new WebViewClient() {
                 public void onPageFinished(final WebView view, String url) {
 
@@ -288,27 +354,74 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onReceiveValue(String value) {
 
-
                             view.setWebViewClient(new WebViewClient(){
+
+
+
+
+
+                                /*public WebResourceResponse shouldInterceptRequest(final WebView view, WebResourceRequest wrr)
+                                {
+                                    *//*Log.d(TAG, "shouldInterceptRequest: url is "+wrr);
+                                    try {
+                                        InputStream is=(InputStream) new URL(String.valueOf(wrr.getUrl())).getContent();
+                                        Drawable d = Drawable.createFromStream(is,"srcName");
+                                        if(d!=null)
+                                            imageView.setImageDrawable(d);
+
+                                        Log.d(TAG, "shouldInterceptRequest: drawable is "+d);
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                    WebResourceResponse xyz=super.shouldInterceptRequest(view,wrr);
+                                    Log.d(TAG, "shouldInterceptRequest: super gives"+xyz);
+                                    return xyz;*//*
+                                }*/
+
+                                public void onPageCommitVisible(WebView view,String url)
+                                {
+
+                                    if(!url.startsWith("https://oath"))
+                                        return;
+
+                                }
+                                
+                                public boolean onRenderProcessGone(WebView view, RenderProcessGoneDetail rpgd)
+                                {
+                                    Log.d(TAG, "onRenderProcessGone: inside rpgd");
+                                    return true;
+                                }
+                                
                                 public void onPageFinished(final WebView view,String url){
+
                                     view.evaluateJavascript("javascript:document.getElementsByName('username').item(0).value='cs5190443';"
-                                            + "javascript:document.getElementsByName('password').item(0).value='"+pass+"';"+
-                                            "javascript:(document.getElementsByClassName('captcha-image').item(0)).src;", new ValueCallback<String>() {
+                                            + "javascript:document.getElementsByName('password').item(0).value='"+pass+"';"
+                                            , new ValueCallback<String>() {
                                         @Override
                                         public void onReceiveValue(String value) {
                                             Log.d(TAG, "onReceiveValue: "+value);
+                                            SystemClock.sleep(1000);
+                                            Log.d(TAG, "onReceiveValue: after sleep"+value);
 
-                                            URL imageurl = null;
-                                            try {
-                                                imageurl = new URL(value);
-                                            } catch (MalformedURLException e) {
-                                                e.printStackTrace();
-                                            }
-                                            try {
-                                                Bitmap bitmap;// = BitmapFactory.decodeStream(imageurl.openConnection().getInputStream());
-                                            } catch (Exception e) {
-                                                e.printStackTrace();
-                                            }
+                                            Picture snapshot=view.capturePicture();
+                                            Bitmap bmp=Bitmap.createBitmap(snapshot.getWidth(),snapshot.getHeight(),Bitmap.Config.ARGB_8888);
+                                            Canvas canvas=new Canvas(bmp);
+                                            snapshot.draw(canvas);
+                                            Log.d(TAG, "onReceiveValue: drawn to canvas"+value);
+
+                                            Bitmap cropped=Bitmap.createBitmap(bmp,172,630,360,155);
+                                            Log.d(TAG, "onReceiveValue: created new bitmap "+value);
+
+                                            String res=processImage(cropped);
+                                            Log.d(TAG, "onReceiveValue: result="+res);
+                                            view.evaluateJavascript("javascript:document.getElementsByName('captcha').item(0).value='"+ res + "';"
+                                                    + "javascript:document.getElementsByName('submit').item(0).click();"
+                                                    , new ValueCallback<String>() {
+                                                @Override
+                                                public void onReceiveValue(String value) {
+                                                    Log.d(TAG, "onReceiveValue: not printing message"+value);
+                                                }
+                                            });
 
 
                                         }
