@@ -47,4 +47,12 @@
         android:layout_marginTop="48dp"
         android:layout_marginBottom="0dp"
         android:text="ngu" />
+
+    <Button
+        android:id="@+id/freespace"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@+id/editText"
+        android:layout_marginEnd="0dp"
+        android:text="FreeSpace" />
 </RelativeLayout>

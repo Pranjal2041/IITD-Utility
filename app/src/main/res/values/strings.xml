@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">IITD Utility</string>
+    <string name="title_activity_free_space">FreeSpace</string>
 </resources>

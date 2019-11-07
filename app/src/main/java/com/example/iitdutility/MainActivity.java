@@ -52,6 +52,17 @@ public class MainActivity extends AppCompatActivity {
         final EditText password=findViewById(R.id.editText);
         webView=findViewById(R.id.webView);
         imageView=findViewById(R.id.imageView);
+        Button freespace=findViewById(R.id.freespace);
+        freespace.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent=new Intent(MainActivity.this
+                ,FreeSpace.class);
+                startActivity(intent);
+            }
+        });
+
+
 
         moodle.setOnClickListener(new View.OnClickListener() {
             @Override
