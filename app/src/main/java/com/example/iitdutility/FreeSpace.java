@@ -4,13 +4,20 @@ package com.example.iitdutility;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.storage.FileDownloadTask;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import androidx.annotation.FontRes;
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -30,6 +37,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Calendar;
@@ -37,6 +45,9 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+
+import static java.util.Arrays.parallelSort;
+import static java.util.Arrays.sort;
 
 public class FreeSpace extends AppCompatActivity {
 
@@ -47,6 +58,8 @@ public class FreeSpace extends AppCompatActivity {
     TextView resDisplay;
     String LHNames[];
     private static final String TAG = "FreeSpace";
+
+    private StorageReference mStorageRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +74,8 @@ public class FreeSpace extends AppCompatActivity {
         date=c.get(Calendar.DAY_OF_MONTH);
         hour=c.get(Calendar.HOUR_OF_DAY);
         minute=c.get(Calendar.MINUTE);
+
+        mStorageRef = FirebaseStorage.getInstance().getReference();
 
         readData();
 
@@ -92,8 +107,9 @@ public class FreeSpace extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                Snackbar.make(view, "Started downloading schedule", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
+                downloadAllData();
             }
         });
     }
@@ -148,6 +164,13 @@ public class FreeSpace extends AppCompatActivity {
     void showLectureHalls()
     {
         readData();
+        if(data==null) {
+            Toast.makeText(this, "No data found", Toast.LENGTH_SHORT).show();
+            return;
+        }
+            int[] timeavail=new int[data.length];
+    //    int[] freeLH=new int[data.length];
+    //    int tot_free=0;
         StringBuilder res = new StringBuilder();
         if((hour<8)||(hour>20))
         {
@@ -156,11 +179,44 @@ public class FreeSpace extends AppCompatActivity {
         }
         for(int i=0;i<data.length;i++)
         {
-                if(data[i][(hour-8)*2+minute/30].equals("Free"))
-                {
-                   res.append(LHNames[i]).append("\n");
-                }
+                int j=(hour-8)*2+minute/30;
+
+
+                    for(int k=j;k<24;k++)
+                    {
+                        if(data[i][k].equals("Free"))
+                            timeavail[i]++;
+                        else break;
+                    }
+
+            //       res.append(LHNames[i]).append("\n");
+
         }
+
+        int[] lhindexes=new int[data.length];
+        for(int i=0;i<data.length;i++)
+            lhindexes[i]=i;
+        sort(timeavail,lhindexes);
+
+        res.append("Best Options:-\n");
+        int i;
+        for(i=data.length-1;i>=data.length-3;i--)
+        {
+
+            if(timeavail[i]==0)
+                break;
+            res.append(LHNames[lhindexes[i]]).append(" (available for next ").append((timeavail[i] - 1) / 2).append(" hrs and ").append(((timeavail[i] + 1) % 2) * 30 + 30 - (minute % 30)).append("minutes)").append("\n");
+
+        }
+
+        res.append("\nOther options:-\n");
+        for(;i>=0;i--)
+        {
+            if(timeavail[i]==0)
+                break;
+            res.append(LHNames[lhindexes[i]]).append("\n");
+        }
+
 
 
        // Toast.makeText(this, "And the free LHs are:-"+res, Toast.LENGTH_SHORT).show();
@@ -169,6 +225,37 @@ public class FreeSpace extends AppCompatActivity {
 
     }
 
+    void sort(int[] arr,int[] arr2)
+    {//sorts both array based on values of arr
+        int n=arr.length;
+        for(int i=1;i<n;++i)
+        {
+            int key=arr[i];
+            int key2=arr2[i];
+            int j=i-1;
+
+            while(j>=0&&arr[j]>key)
+            {
+                arr[j+1]=arr[j];
+                arr2[j+1]=arr2[j];
+                j=j-1;
+            }
+            arr[j+1]=key;
+            arr2[j+1]=key2;
+        }
+
+
+
+    }
+
+    void downloadAllData()
+    {
+        for(int i=1;i<29;i++) {
+            Log.d(TAG, "downloadAllData: "+i);
+
+            createFile(generateFileName(i, month, year));
+        }
+    }
 
     String generateFileName(int date,int month,int year)
     {
@@ -179,6 +266,8 @@ public class FreeSpace extends AppCompatActivity {
     {
 
         String filename = generateFileName(date,month,year);
+
+
         FileInputStream fileInputStream;
         try {
             fileInputStream=openFileInput(filename);
@@ -208,7 +297,34 @@ public class FreeSpace extends AppCompatActivity {
         }catch (FileNotFoundException fnfe)
         {
             createFile(filename);
-            readData();
+
+            try {
+                fileInputStream = openFileInput(filename);
+                InputStream inputStream = fileInputStream;
+
+                final BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+
+                final StringBuilder stringBuilder = new StringBuilder();
+
+                boolean done = false;
+
+                while (!done) {
+                    final String line = reader.readLine();
+                    done = (line == null);
+
+                    if (line != null) {
+                        stringBuilder.append(line);
+                    }
+                }
+
+                reader.close();
+                inputStream.close();
+                fileInputStream.close();
+
+                readTable(stringBuilder.toString());
+            }catch (Exception e){}
+
+
         }
         catch(Exception e)
         {
@@ -245,10 +361,71 @@ public class FreeSpace extends AppCompatActivity {
 
     }
 
-    void createFile(String filename)
+    void createFile(final String filename)
     {
+        /*try {
+            StorageReference riversRef = mStorageRef.child(filename + ".html");
+
+            File localFile = File.createTempFile("images", "jpg");
+            riversRef.getFile(localFile)
+                    .addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                            // Successfully downloaded data to local file
+                            // ...
+                            Log.d(TAG, "onSuccess: ");
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception exception) {
+                    // Handle failed download
+                    // ...
+                    Log.d(TAG, "onFailure: ");
+                }
+            });
+        }catch (Exception e)
+        {
+            Log.d(TAG, "createFile: Exception "+e);
+        }
+        */
+        try {
+            //       Uri file = Uri.fromFile(new File("path/to/images/rivers.jpg"));
+            StorageReference riversRef = mStorageRef.child(filename + ".html");
+            riversRef.getBytes(1048576)
+                    .addOnSuccessListener(new OnSuccessListener<byte[]>() {
+                        @Override
+                        public void onSuccess(byte[] bytes) {
+                            Log.d(TAG, "onSuccess: got bytes");
+
+                            FileOutputStream outputStream;
+
+                            try {
+                                outputStream = openFileOutput(filename, Context.MODE_PRIVATE);
+                                outputStream.write(bytes);
+                                outputStream.close();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            showLectureHalls();
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Toast.makeText(FreeSpace.this, "Unable to load data", Toast.LENGTH_SHORT).show();
+                }
+            });
+
+        }
+        catch (Exception e)
+        {
+            Log.d(TAG, "createFile: exception "+e);
+        }
+
+
+
+
         //In actual we will be importing from some online server
-        File file = new File(this.getFilesDir(), filename);
+       /* File file = new File(this.getFilesDir(), filename);
 
         String fileContents = "<table border=\"1\" class=\"dataframe\">\n" +
                 "  <thead>\n" +
@@ -2250,7 +2427,7 @@ public class FreeSpace extends AppCompatActivity {
             outputStream.close();
         } catch (Exception e) {
             e.printStackTrace();
-        }
+        }*/
     }
 
 

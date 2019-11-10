@@ -55,4 +55,15 @@
         android:layout_alignEnd="@+id/editText"
         android:layout_marginEnd="0dp"
         android:text="FreeSpace" />
+
+    <Button
+        android:id="@+id/timble"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/button2"
+        android:layout_alignTop="@+id/imageView"
+        android:layout_marginStart="166dp"
+        android:layout_marginTop="48dp"
+        android:layout_marginBottom="0dp"
+        android:text="timble" />
 </RelativeLayout>

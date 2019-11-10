@@ -1,9 +1,11 @@
 package com.example.iitdutility;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.res.ComplexColorCompat;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -29,12 +31,22 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.storage.FileDownloadTask;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+
 import org.w3c.dom.Document;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+
+import static java.lang.Float.NaN;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -43,12 +55,47 @@ public class MainActivity extends AppCompatActivity {
     ImageView imageView;
     int counter=0;
     private static final String TAG = "MainActivity";
-    @Override
+
+    private StorageReference mStorageRef;
+
+
+
+
+    void createFile(final String filename) {
+        try {
+            StorageReference riversRef = mStorageRef.child(filename + ".html");
+
+            File localFile = File.createTempFile("images", "jpg");
+            riversRef.getFile(localFile)
+                    .addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                            // Successfully downloaded data to local file
+                            // ...
+                            Log.d(TAG, "onSuccess: ");
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception exception) {
+                    // Handle failed download
+                    // ...
+                    Log.d(TAG, "onFailure: ");
+                }
+            });
+        } catch (Exception e) {
+            Log.d(TAG, "createFile: Exception " + e.getMessage());
+        }
+
+
+    }
+        @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Button moodle=findViewById(R.id.button);
         Button ngu=findViewById(R.id.button2);
+        Button timble=findViewById(R.id.timble);
+
         final EditText password=findViewById(R.id.editText);
         webView=findViewById(R.id.webView);
         imageView=findViewById(R.id.imageView);
@@ -61,7 +108,8 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-
+            mStorageRef = FirebaseStorage.getInstance().getReference();
+           // createFile("10_11_2019");
 
 
         moodle.setOnClickListener(new View.OnClickListener() {
@@ -81,6 +129,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        timble.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                loadTimble();
+            }
+        });
+
 
 
 
@@ -91,6 +146,70 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
+
+    void loadTimble()
+    {
+        SharedPreferences pref = getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
+        String url=pref.getString("TimbleURL","http://10.8.2.111:8080/Default/viewattendance");
+        if(url.equals("")) {
+            SharedPreferences.Editor editor = pref.edit();
+            editor.putString("TimbleURL", "http://10.8.2.111:8080/Default/viewattendance");
+            editor.apply();
+            url="http://10.8.2.111:8080/Default/viewattendance";
+        }
+        loadTimbleURL(url);
+
+    }
+
+    void savePref(String key,String value)
+    {
+        SharedPreferences pref = getApplicationContext().getSharedPreferences("MyPref", 0); // 0 - for private mode
+        SharedPreferences.Editor editor=pref.edit();
+        editor.putString(key,value);
+        editor.apply();
+    }
+
+
+    void loadTimbleURL(final String url1)
+    {
+
+            webView.getSettings().setJavaScriptEnabled(true);
+
+            webView.loadUrl(url1);
+            final String js="javascript:document.getElementById(\"UserCode\").value='2019CS50443';" +
+                    "javascript:document.getElementsByClassName(\"btn btn-default\").item(0).click();";
+
+               webView.setWebViewClient(new WebViewClient() {
+                public void onPageFinished ( final WebView view, String url)
+                {
+                        if(!url1.equals(url))
+                            savePref("TimbleURL","url");
+
+                }
+
+
+                @Override
+                public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error)
+                {
+                    Log.e(TAG, "onReceivedSslError: "+error.toString() );
+                    //if(error.mUrl="https://moodle.iitd.ac.in/login/index.php")
+                    handler.proceed();
+                }
+
+
+            });
+
+
+
+
+
+
+
+
+
+    }
+
+
 
     void addImagePadding(Bitmap process)
     {
@@ -200,6 +319,9 @@ public class MainActivity extends AppCompatActivity {
 
     public static Bitmap RotateBitmap(Bitmap source, float angle)
     {
+        if(Float.isNaN(angle))
+            return source;
+
         Matrix matrix = new Matrix();
         matrix.postRotate(angle);
         return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);

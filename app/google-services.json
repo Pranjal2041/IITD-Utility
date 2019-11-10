@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "513086705017",
+    "firebase_url": "https://iitdutility.firebaseio.com",
+    "project_id": "iitdutility",
+    "storage_bucket": "iitdutility.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:513086705017:android:d267b91743a02dc5a1f3a8",
+        "android_client_info": {
+          "package_name": "com.example.iitdutility"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "513086705017-lrjuorsr0o55758agojgprtmvlvihb1t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAWMd4tBDd8hRdx55d4wUJXj-hiKhF7kBc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "513086705017-lrjuorsr0o55758agojgprtmvlvihb1t.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
