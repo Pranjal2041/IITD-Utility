@@ -13,16 +13,20 @@
         android:id="@+id/button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Moodle" />
+        android:text="Moodle"
+        android:theme="@style/Base.CardView" />
 
     <EditText
         android:id="@+id/editText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignStart="@+id/button"
-        android:layout_marginStart="185dp"
-        android:ems="10"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="92dp"
+        android:layout_marginTop="41dp"
         android:background="@color/colorAccent"
+        android:ems="10"
+        android:hint="Password"
         android:inputType="textPassword" />
 
     <WebView
@@ -31,30 +35,24 @@
         android:layout_height="match_parent"
         android:layout_marginTop="100dp"/>
 
-    <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="visible"
-        app:srcCompat="@mipmap/ic_launcher_round" />
 
     <Button
         android:id="@+id/button2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignStart="@+id/webView"
-        android:layout_alignTop="@+id/imageView"
         android:layout_marginStart="0dp"
         android:layout_marginTop="48dp"
         android:layout_marginBottom="0dp"
-        android:text="ngu" />
+        android:text="ngu"
+        android:theme="@style/CardView.Dark" />
 
     <Button
         android:id="@+id/freespace"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignEnd="@+id/editText"
-        android:layout_marginEnd="0dp"
+        android:layout_alignEnd="@+id/button"
+        android:layout_marginEnd="-317dp"
         android:text="FreeSpace" />
 
     <Button
@@ -62,11 +60,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignStart="@+id/button2"
-        android:layout_alignTop="@+id/imageView"
-        android:layout_marginStart="166dp"
-        android:layout_marginTop="48dp"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="316dp"
+        android:layout_marginTop="50dp"
         android:layout_marginBottom="0dp"
-        android:text="timble" />
+        android:text="timble"
+        android:theme="@style/CardView.Light" />
 
     <EditText
         android:id="@+id/userid"
@@ -81,4 +80,6 @@
         android:hint="UserId"
         android:inputType="textPersonName"
         android:text="" />
+
+
 </RelativeLayout>

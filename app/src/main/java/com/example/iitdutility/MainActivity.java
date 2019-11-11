@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         final EditText password=findViewById(R.id.editText);
         final EditText userid=findViewById(R.id.userid);
         webView=findViewById(R.id.webView);
-        imageView=findViewById(R.id.imageView);
+       // imageView=findViewById(R.id.imageView);
         Button freespace=findViewById(R.id.freespace);
 
 
