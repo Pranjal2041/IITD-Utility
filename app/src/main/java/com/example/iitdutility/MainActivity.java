@@ -100,7 +100,7 @@ public class MainActivity extends AppCompatActivity {
 
         final EditText password=findViewById(R.id.editText);
         webView=findViewById(R.id.webView);
-        imageView=findViewById(R.id.imageView);
+       // imageView=findViewById(R.id.imageView);
         Button freespace=findViewById(R.id.freespace);
         freespace.setOnClickListener(new View.OnClickListener() {
             @Override
