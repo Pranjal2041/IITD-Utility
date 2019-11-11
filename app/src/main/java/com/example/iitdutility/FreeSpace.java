@@ -164,6 +164,12 @@ public class FreeSpace extends AppCompatActivity {
     void showLectureHalls()
     {
         readData();
+        StringBuilder res = new StringBuilder();
+        if((hour<8)||(hour>20)) {
+            resDisplay.setText("Everything is free");
+            return;
+        }
+
         if(data==null) {
             Toast.makeText(this, "No data found", Toast.LENGTH_SHORT).show();
             return;
@@ -171,12 +177,7 @@ public class FreeSpace extends AppCompatActivity {
             int[] timeavail=new int[data.length];
     //    int[] freeLH=new int[data.length];
     //    int tot_free=0;
-        StringBuilder res = new StringBuilder();
-        if((hour<8)||(hour>20))
-        {
-            resDisplay.setText("Everything is free");
-            return;
-        }
+
         for(int i=0;i<data.length;i++)
         {
                 int j=(hour-8)*2+minute/30;

@@ -16,8 +16,11 @@
         <activity
             android:name=".FreeSpace"
             android:label="@string/title_activity_free_space"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
-        <activity android:name=".MainActivity">
+            android:theme="@style/AppTheme.NoActionBar">
+
+        </activity>
+        <activity android:name=".MainActivity"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.res.ComplexColorCompat;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -19,6 +20,7 @@ import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.webkit.RenderProcessGoneDetail;
 import android.webkit.SslErrorHandler;
 import android.webkit.ValueCallback;
@@ -124,7 +126,20 @@ public class MainActivity extends AppCompatActivity {
         ngu.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                pass=String.valueOf(password.getText());
+                pass = String.valueOf(password.getText());
+
+
+                View view = getCurrentFocus();
+                if (view == null)
+                {
+                    Log.d(TAG, "onClick: view is null");
+                    view=findViewById(R.id.mainAc);
+                }
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                view.clearFocus();
+
+
                 loadNgu();
             }
         });
@@ -241,7 +256,7 @@ public class MainActivity extends AppCompatActivity {
                 int j=0;
                 for(j=0;j<process.getWidth();j++)
                 {
-                        if(Color.red(process.getPixel(j,i+5))==255)
+                        if(Color.blue(process.getPixel(j,i+5))==255)
                             break;
                 }
                 if(j!=process.getWidth())
@@ -252,7 +267,7 @@ public class MainActivity extends AppCompatActivity {
                 int j=0;
                 for(j=0;j<process.getWidth();j++)
                 {
-                    if(Color.red(process.getPixel(j,i-5))==255)
+                    if(Color.blue(process.getPixel(j,i-5))==255)
                         break;
                 }
                 if(j!=process.getWidth())
@@ -264,7 +279,7 @@ public class MainActivity extends AppCompatActivity {
                 int j=0;
                 for(j=0;j<process.getHeight();j++)
                 {
-                    if(Color.red(process.getPixel(i+5,j))==255)
+                    if(Color.blue(process.getPixel(i+5,j))==255)
                         break;
                 }
                 if(j!=process.getHeight())
@@ -275,7 +290,7 @@ public class MainActivity extends AppCompatActivity {
                 int j=0;
                 for(j=0;j<process.getHeight();j++)
                 {
-                    if(Color.red(process.getPixel(i-5,j))==255)
+                    if(Color.blue(process.getPixel(i-5,j))==255)
                         break;
                 }
                 if(j!=process.getWidth())
@@ -299,7 +314,7 @@ public class MainActivity extends AppCompatActivity {
             {
                 for(int j=startWidth;j<endWidth;j++)
                 {
-                    if(Color.red(process.getPixel(j,i))==0)
+                    if(Color.blue(process.getPixel(j,i))==0)
                         continue;
                     double temp=Math.sqrt(Math.pow(endHeight-i,2)+Math.pow(j-startWidth,2));
                     double temp2=Math.sqrt(Math.pow(endHeight-i,2)+Math.pow(j-endWidth,2));
@@ -331,7 +346,7 @@ public class MainActivity extends AppCompatActivity {
     {
         for(int i=0;i<process.getHeight();i++)
             for(int j=0;j<process.getWidth();j++)
-                if(Color.red(process.getPixel(j,i))==0)
+                if(Color.blue(process.getPixel(j,i))==0)
                     process.setPixel(j,i,Color.WHITE);
                 else
                     process.setPixel(j,i,Color.BLACK);
@@ -357,7 +372,7 @@ public class MainActivity extends AppCompatActivity {
                     try {
                         int p = bitmap.getPixel(j, i);
 
-                    int r=Color.red(p);
+                    int r=Color.blue(p);
                     if(r>120)
                         process.setPixel(j+3,i+3,Color.BLACK);
                     else
@@ -402,6 +417,14 @@ public class MainActivity extends AppCompatActivity {
             MyTessOCR mTessOCR;
             mTessOCR = new MyTessOCR(MainActivity.this);
 
+           /* int[] arr1=trimBorders(process);
+            startWidth=arr1[3];
+            startHeight=arr1[1];
+            endWidth=arr1[2];
+            endHeight=arr1[0];
+         //   Bitmap proc=Bitmap.createBitmap(process,startWidth,startHeight,endWidth-startWidth,endHeight-startHeight);
+           // imageView.setImageBitmap(proc);
+*/
             String temp2 = mTessOCR.getOCRResult(process);
             String res;
             temp=temp.replace(" ","");
@@ -413,7 +436,7 @@ public class MainActivity extends AppCompatActivity {
                 res=temp;
             else
                 res=temp2;
-            Toast.makeText(this, "And the captcha is "+res, Toast.LENGTH_SHORT).show();
+           // Toast.makeText(this, "And the captcha is "+res, Toast.LENGTH_SHORT).show();
             return res;
         }
 
@@ -429,11 +452,11 @@ public class MainActivity extends AppCompatActivity {
                     {
                         for(int q=-1;q<=1;q++)
                         {
-                            if(Color.red(original.getPixel(i+p,j+q))==0)
+                            if(Color.blue(original.getPixel(i+p,j+q))==0)
                                 count++;
                         }
                     }
-                    if(Color.red(original.getPixel(i,j))==0)
+                    if(Color.blue(original.getPixel(i,j))==0)
                     {
                         if(count<3)
                             bmp.setPixel(i,j,Color.WHITE);
@@ -483,6 +506,9 @@ public class MainActivity extends AppCompatActivity {
             webView.setWebViewClient(new WebViewClient() {
                 public void onPageFinished(final WebView view, String url) {
 
+                    Log.d(TAG, "onPageFinished: ngu url is "+url);
+                    if(!(url.equals("https://ngu.iitd.ac.in/index")))
+                        return;
                     view.evaluateJavascript(js, new ValueCallback<String>() {
                         @Override
                         public void onReceiveValue(String value) {
@@ -511,7 +537,7 @@ public class MainActivity extends AppCompatActivity {
                                     return xyz;*//*
                                 }*/
 
-                                public void onPageCommitVisible(WebView view,String url)
+                               /* public void onPageCommitVisible(WebView view,String url)
                                 {
 
                                     if(!url.startsWith("https://oath"))
@@ -524,31 +550,50 @@ public class MainActivity extends AppCompatActivity {
                                     Log.d(TAG, "onRenderProcessGone: inside rpgd");
                                     return true;
                                 }
-                                
+                               */
                                 public void onPageFinished(final WebView view,String url){
+                                    view.setDrawingCacheEnabled(true);
+                                    Log.d(TAG, "onPageFinished: inner url is"+url);
+                                    if(!(url.equals("https://oauth.iitd.ac.in/login.php?response_type=code&client_id=krVHwOTYrOAT8UqdxmnG9z3k8pRWgmdB&state=xyz")))
+                                        return;
+                                    //view.scrollTo(0,view.getHeight());
 
                                     view.evaluateJavascript("javascript:document.getElementsByName('username').item(0).value='cs5190443';"
-                                            + "javascript:document.getElementsByName('password').item(0).value='"+pass+"';"
                                             , new ValueCallback<String>() {
                                         @Override
                                         public void onReceiveValue(String value) {
                                             Log.d(TAG, "onReceiveValue: "+value);
+
                                             SystemClock.sleep(1000);
                                             Log.d(TAG, "onReceiveValue: after sleep"+value);
 
                                             Picture snapshot=view.capturePicture();
-                                            Bitmap bmp=Bitmap.createBitmap(snapshot.getWidth(),snapshot.getHeight(),Bitmap.Config.ARGB_8888);
+                                            Bitmap bmp=Bitmap.createBitmap(view.getWidth(),view.getHeight(),Bitmap.Config.ARGB_8888);
                                             Canvas canvas=new Canvas(bmp);
+                                            Toast.makeText(MainActivity.this, "width="+view.getWidth()+"\n"+view.getHeight(), Toast.LENGTH_SHORT).show();
                                             snapshot.draw(canvas);
+                                            //view.draw(canvas);
                                             Log.d(TAG, "onReceiveValue: drawn to canvas"+value);
 
-                                            Bitmap cropped=Bitmap.createBitmap(bmp,172,630,360,155);
-                                            Log.d(TAG, "onReceiveValue: created new bitmap "+value);
+                                            Bitmap cropped;
+                                            try {
+                                                int x= (int) (0.14*view.getWidth());
+                                                int y= (int) (0.35*view.getHeight());
+                                                int w= (int) (0.38*view.getWidth());
+                                                int h= (int) (0.24*view.getHeight());
+                                                 cropped= Bitmap.createBitmap(bmp, x, y, w, h);
+                                            }catch (Exception e){
+                                                cropped=bmp;
+                                            }Log.d(TAG, "onReceiveValue: created new bitmap "+value);
+                                           // imageView.setImageBitmap(cropped);
 
                                             String res=processImage(cropped);
                                             Log.d(TAG, "onReceiveValue: result="+res);
+                                            if(res.equals(""))
+                                                res="a";
                                             view.evaluateJavascript("javascript:document.getElementsByName('captcha').item(0).value='"+ res + "';"
-                                                    + "javascript:document.getElementsByName('submit').item(0).click();"
+                                                            + "javascript:document.getElementsByName('password').item(0).value='"+pass+"';"
+                                                            + "javascript:document.getElementsByName('submit').item(0).click();"
                                                     , new ValueCallback<String>() {
                                                 @Override
                                                 public void onReceiveValue(String value) {
