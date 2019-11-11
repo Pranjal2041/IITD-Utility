@@ -55,41 +55,17 @@ public class MainActivity extends AppCompatActivity {
     String pass;
     WebView webView;
     ImageView imageView;
+    String user_id;
     int counter=0;
     private static final String TAG = "MainActivity";
 
-    private StorageReference mStorageRef;
-
-
-
-
-    void createFile(final String filename) {
-        try {
-            StorageReference riversRef = mStorageRef.child(filename + ".html");
-
-            File localFile = File.createTempFile("images", "jpg");
-            riversRef.getFile(localFile)
-                    .addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
-                        @Override
-                        public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
-                            // Successfully downloaded data to local file
-                            // ...
-                            Log.d(TAG, "onSuccess: ");
-                        }
-                    }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception exception) {
-                    // Handle failed download
-                    // ...
-                    Log.d(TAG, "onFailure: ");
-                }
-            });
-        } catch (Exception e) {
-            Log.d(TAG, "createFile: Exception " + e.getMessage());
-        }
-
-
+    String idToEntryNo(String user)
+    {
+        String res="20";
+        res+=user.substring(3,5)+user.substring(0,3)+user.substring(5);
+        return res;
     }
+
         @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -99,9 +75,12 @@ public class MainActivity extends AppCompatActivity {
         Button timble=findViewById(R.id.timble);
 
         final EditText password=findViewById(R.id.editText);
+        final EditText userid=findViewById(R.id.userid);
         webView=findViewById(R.id.webView);
         imageView=findViewById(R.id.imageView);
         Button freespace=findViewById(R.id.freespace);
+
+
         freespace.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -110,7 +89,6 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
-            mStorageRef = FirebaseStorage.getInstance().getReference();
            // createFile("10_11_2019");
 
 
@@ -118,6 +96,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 pass=String.valueOf(password.getText());
+                user_id=String.valueOf(userid.getText());
                 counter=0;
                 loadMoodle();
             }
@@ -127,6 +106,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 pass = String.valueOf(password.getText());
+                user_id=String.valueOf(userid.getText());
 
 
                 View view = getCurrentFocus();
@@ -147,6 +127,7 @@ public class MainActivity extends AppCompatActivity {
         timble.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                user_id=String.valueOf(userid.getText());
                 loadTimble();
             }
         });
@@ -191,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
             webView.getSettings().setJavaScriptEnabled(true);
 
             webView.loadUrl(url1);
-            final String js="javascript:document.getElementById(\"UserCode\").value='2019CS50443';" +
+            final String js="javascript:document.getElementById(\"UserCode\").value='"+idToEntryNo(user_id)+"';" +
                     "javascript:document.getElementsByClassName(\"btn btn-default\").item(0).click();";
 
                webView.setWebViewClient(new WebViewClient() {
@@ -558,7 +539,7 @@ public class MainActivity extends AppCompatActivity {
                                         return;
                                     //view.scrollTo(0,view.getHeight());
 
-                                    view.evaluateJavascript("javascript:document.getElementsByName('username').item(0).value='cs5190443';"
+                                    view.evaluateJavascript("javascript:document.getElementsByName('username').item(0).value='"+user_id+"';"
                                             , new ValueCallback<String>() {
                                         @Override
                                         public void onReceiveValue(String value) {
@@ -636,7 +617,7 @@ public class MainActivity extends AppCompatActivity {
 
         String url="https://moodle.iitd.ac.in/login/index.php";
         webView.loadUrl(url);
-        final String js="javascript:document.getElementById('username').value='cs5190443';" +
+        final String js="javascript:document.getElementById('username').value='"+user_id+"';" +
                 "javascript:document.getElementById('password').value='"+pass+"';"+
                 "(function(){return window.document.body.outerHTML})()";
 
